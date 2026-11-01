@@ -4,13 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo 'Getting code from GitHub'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo 'Building Application'
+                checkout scm
             }
         }
 
@@ -21,9 +15,18 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t devops-cicd-web:latest .'
+            }
+        }
+
         stage('Deploy') {
             steps {
-                echo 'Deployment stage completed'
+                sh '''
+                    docker rm -f devops-web || true
+                    docker run -d --name devops-web --restart unless-stopped -p 80:80 devops-cicd-web:latest
+                '''
             }
         }
     }
